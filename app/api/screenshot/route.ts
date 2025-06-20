@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 import path from 'path';
 import fs from 'fs';
 
@@ -41,20 +40,45 @@ export async function GET(request: NextRequest) {
             fs.mkdirSync(screenshotsDir, { recursive: true });
         }
 
-        // Launch browser - Vercel will handle Chrome in production
-        browser = await puppeteer.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-web-security',
-                '--disable-features=VizDisplayCompositor'
-            ]
-        });
+        // Check if running on Vercel
+        const isVercel = process.env.VERCEL === '1';
+
+        if (isVercel) {
+            // Production: Use puppeteer-core with Vercel's Chrome
+            const puppeteer = require('puppeteer-core');
+
+            browser = await puppeteer.launch({
+                headless: true,
+                executablePath: '/usr/bin/google-chrome-stable',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-web-security',
+                    '--disable-features=VizDisplayCompositor'
+                ]
+            });
+        } else {
+            // Development: Use full puppeteer
+            const puppeteer = require('puppeteer');
+
+            browser = await puppeteer.launch({
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-web-security',
+                    '--disable-features=VizDisplayCompositor'
+                ]
+            });
+        }
 
         const page = await browser.newPage();
 
