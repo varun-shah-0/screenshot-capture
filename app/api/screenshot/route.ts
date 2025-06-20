@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { chromium } from 'playwright';
 import path from 'path';
 import fs from 'fs';
 
@@ -40,101 +41,39 @@ export async function GET(request: NextRequest) {
             fs.mkdirSync(screenshotsDir, { recursive: true });
         }
 
-        // Check if running on Vercel
-        const isVercel = process.env.VERCEL === '1';
-
-        if (isVercel) {
-            // Production: Use puppeteer-core with Vercel's Chrome
-            const puppeteer = require('puppeteer-core');
-            const fs = require('fs');
-
-            // Try different Chrome paths
-            const chromePaths = [
-                '/usr/bin/chromium-browser',
-                '/usr/bin/google-chrome-stable',
-                '/usr/bin/chromium',
-                '/usr/bin/google-chrome',
-                '/opt/google/chrome/chrome'
-            ];
-
-            let executablePath = null;
-            for (const path of chromePaths) {
-                if (fs.existsSync(path)) {
-                    executablePath = path;
-                    break;
-                }
-            }
-
-            // If no Chrome path found, use full puppeteer instead
-            if (!executablePath) {
-                console.log('No Chrome found, falling back to full puppeteer');
-                const fullPuppeteer = require('puppeteer');
-                browser = await fullPuppeteer.launch({
-                    headless: true,
-                    args: [
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-gpu',
-                        '--no-first-run',
-                        '--no-zygote',
-                        '--disable-web-security',
-                        '--disable-features=VizDisplayCompositor'
-                    ]
-                });
-            } else {
-                browser = await puppeteer.launch({
-                    headless: true,
-                    executablePath,
-                    args: [
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-gpu',
-                        '--no-first-run',
-                        '--no-zygote',
-                        '--disable-web-security',
-                        '--disable-features=VizDisplayCompositor'
-                    ]
-                });
-            }
-        } else {
-            // Development: Use full puppeteer
-            const puppeteer = require('puppeteer');
-
-            browser = await puppeteer.launch({
-                headless: true,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--disable-web-security',
-                    '--disable-features=VizDisplayCompositor'
-                ]
-            });
-        }
+        // Launch browser with Playwright
+        browser = await chromium.launch({
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-first-run',
+                '--no-zygote'
+            ]
+        });
 
         const page = await browser.newPage();
 
         // Set user agent
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await page.setExtraHTTPHeaders({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        });
 
         // Set viewport
-        await page.setViewport({ width: 1200, height: 800 });
+        await page.setViewportSize({ width: 1200, height: 800 });
 
         console.log(`Navigating to: ${url}`);
 
         // Navigate to the URL
         await page.goto(url, {
-            waitUntil: 'networkidle2',
+            waitUntil: 'networkidle',
             timeout: 30000
         });
 
         // Wait for content to load
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await page.waitForTimeout(2000);
 
         // Get page dimensions
         const dimensions = await page.evaluate(() => {
@@ -145,7 +84,7 @@ export async function GET(request: NextRequest) {
         });
 
         // Adjust viewport to content size
-        await page.setViewport({
+        await page.setViewportSize({
             width: Math.min(dimensions.width, 1920),
             height: Math.min(dimensions.height, 1080)
         });
@@ -196,7 +135,7 @@ export async function GET(request: NextRequest) {
             {
                 error: 'Failed to capture newsletter screenshot',
                 message: errorMessage,
-                tip: 'If this is your first time running the API, Puppeteer may need to download Chrome. Please try again in a few moments.'
+                tip: 'If this is your first time running the API, Playwright may need to download browsers. Please try again in a few moments.'
             },
             { status: 500 }
         );
