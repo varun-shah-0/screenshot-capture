@@ -2,11 +2,11 @@
 const nextConfig = {
   output: 'standalone',
   experimental: {
-    serverComponentsExternalPackages: ['puppeteer']
+    serverComponentsExternalPackages: ['playwright']
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals.push('puppeteer');
+      config.externals.push('playwright');
     }
     return config;
   }
