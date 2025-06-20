@@ -1,31 +1,88 @@
-# Node.js Hello World
+# Newsletter Screenshot Capture
 
-Simple Node.js + Vercel example that returns a "Hello World" response.
+A minimal Next.js project that captures screenshots of email newsletters using Puppeteer.
 
-## How to Use
+## Features
 
-You can choose from one of the following two methods to use this repository:
+- Capture full-page screenshots of newsletter URLs
+- Automatic filename generation with domain and timestamp
+- Optimized browser settings for reliable capture
+- Saves screenshots to `screenshots/` folder
 
-### One-Click Deploy
+## Quick Start
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples):
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/examples/tree/main/solutions/node-hello-world&project-name=node-hello-world&repository-name=node-hello-world)
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-### Clone and Deploy
+3. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-```bash
-git clone https://github.com/vercel/examples/tree/main/solutions/node-hello-world
+## API Usage
+
+### Endpoint
+```
+GET /api/screenshot?url=YOUR_NEWSLETTER_URL
 ```
 
-Install the Vercel CLI:
+### Parameters
+- `url` (required): The newsletter URL to capture
+- `filename` (optional): Custom filename for the screenshot
 
-```bash
-npm i -g vercel
+### Examples
+
+**Basic usage:**
+```
+GET /api/screenshot?url=https://example.com/newsletter
 ```
 
-Then run the app at the root of the repository:
-
-```bash
-vercel dev
+**With custom filename:**
 ```
+GET /api/screenshot?url=https://example.com/newsletter&filename=my_newsletter.png
+```
+
+### Response
+```json
+{
+  "success": true,
+  "message": "Newsletter screenshot captured successfully",
+  "filename": "newsletter_example_com_2024-01-15T10-30-45-123Z.png",
+  "filepath": "/path/to/screenshot.png",
+  "url": "https://example.com/newsletter",
+  "timestamp": "2024-01-15T10:30:45.123Z"
+}
+```
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/
+│   │   └── screenshot/
+│   │       └── route.ts          # API endpoint
+│   ├── layout.tsx                # Root layout
+│   └── page.tsx                  # Home page
+├── screenshots/                  # Generated screenshots (created automatically)
+├── package.json
+├── next.config.js
+└── tsconfig.json
+```
+
+## Technical Details
+
+- **Framework**: Next.js 14 with App Router
+- **Browser Automation**: Puppeteer
+- **Language**: TypeScript
+- **Screenshots**: Full-page PNG format
+- **Browser**: Headless Chrome with optimized settings
+
+## Notes
+
+- On first run, Puppeteer will download Chrome automatically
+- Screenshots are saved to the `screenshots/` folder in the project root
+- The API includes proper error handling and validation 

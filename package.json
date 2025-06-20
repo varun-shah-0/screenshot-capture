@@ -1,10 +1,24 @@
 {
-  "repository": "https://github.com/vercel/examples.git",
-  "license": "MIT",
+  "name": "newsletter-screenshot-capture",
+  "version": "1.0.0",
+  "description": "Capture email newsletter screenshots using Puppeteer",
   "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "puppeteer": "^22.8.2",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
   "devDependencies": {
-    "@types/node": "^17.0.42",
-    "@vercel/node": "^2.9.6",
-    "typescript": "^4.7.3"
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
   }
-}
+} 
