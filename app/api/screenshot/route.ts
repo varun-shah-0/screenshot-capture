@@ -65,20 +65,39 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            browser = await puppeteer.launch({
-                headless: true,
-                executablePath,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--disable-web-security',
-                    '--disable-features=VizDisplayCompositor'
-                ]
-            });
+            // If no Chrome path found, use full puppeteer instead
+            if (!executablePath) {
+                console.log('No Chrome found, falling back to full puppeteer');
+                const fullPuppeteer = require('puppeteer');
+                browser = await fullPuppeteer.launch({
+                    headless: true,
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-gpu',
+                        '--no-first-run',
+                        '--no-zygote',
+                        '--disable-web-security',
+                        '--disable-features=VizDisplayCompositor'
+                    ]
+                });
+            } else {
+                browser = await puppeteer.launch({
+                    headless: true,
+                    executablePath,
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-gpu',
+                        '--no-first-run',
+                        '--no-zygote',
+                        '--disable-web-security',
+                        '--disable-features=VizDisplayCompositor'
+                    ]
+                });
+            }
         } else {
             // Development: Use full puppeteer
             const puppeteer = require('puppeteer');
