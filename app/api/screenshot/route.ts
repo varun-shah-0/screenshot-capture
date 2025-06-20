@@ -46,10 +46,28 @@ export async function GET(request: NextRequest) {
         if (isVercel) {
             // Production: Use puppeteer-core with Vercel's Chrome
             const puppeteer = require('puppeteer-core');
+            const fs = require('fs');
+
+            // Try different Chrome paths
+            const chromePaths = [
+                '/usr/bin/chromium-browser',
+                '/usr/bin/google-chrome-stable',
+                '/usr/bin/chromium',
+                '/usr/bin/google-chrome',
+                '/opt/google/chrome/chrome'
+            ];
+
+            let executablePath = null;
+            for (const path of chromePaths) {
+                if (fs.existsSync(path)) {
+                    executablePath = path;
+                    break;
+                }
+            }
 
             browser = await puppeteer.launch({
                 headless: true,
-                executablePath: '/usr/bin/google-chrome-stable',
+                executablePath,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
