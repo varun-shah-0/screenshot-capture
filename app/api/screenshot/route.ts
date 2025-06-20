@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 import path from 'path';
 import fs from 'fs';
 
@@ -32,7 +31,7 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    let browser: import('puppeteer').Browser | null = null;
+    let browser: any = null;
 
     try {
         // Create screenshots directory if it doesn't exist
@@ -41,18 +40,39 @@ export async function GET(request: NextRequest) {
             fs.mkdirSync(screenshotsDir, { recursive: true });
         }
 
-        // Launch browser
-        browser = await puppeteer.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--no-first-run',
-                '--no-zygote'
-            ]
-        });
+        // Launch browser with serverless-compatible Chrome
+        const isProd = process.env.AWS_LAMBDA_FUNCTION_VERSION || process.env.VERCEL;
+
+        if (isProd) {
+            // Production: Use puppeteer-core with @sparticuz/chromium
+            const puppeteer = require('puppeteer-core');
+            const chromium = require('@sparticuz/chromium');
+
+            const executablePath = await chromium.executablePath();
+
+            browser = await puppeteer.launch({
+                headless: true,
+                executablePath,
+                args: chromium.args,
+                defaultViewport: chromium.defaultViewport,
+                ignoreHTTPSErrors: true,
+            });
+        } else {
+            // Development: Use full puppeteer
+            const puppeteer = require('puppeteer');
+
+            browser = await puppeteer.launch({
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--no-first-run',
+                    '--no-zygote'
+                ]
+            });
+        }
 
         const page = await browser.newPage();
 
